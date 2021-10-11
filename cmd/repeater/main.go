@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/Mikhalevich/repeater"
@@ -26,13 +27,13 @@ func main() {
 
 	flag.Parse()
 
-	cmdArg := flag.Arg(0)
-	if cmdArg == "" {
+	args := flag.Args()
+	if len(args) <= 0 {
 		log.Println("command not specified")
 		os.Exit(1)
 	}
 
-	cmd := exec.Command(cmdArg)
+	cmd := exec.Command(args[0], args[1:]...)
 
 	if err := repeater.Do(
 		func() error {
@@ -41,9 +42,9 @@ func main() {
 		repeater.WithCount(*count),
 		repeater.WithTimeout(*duration),
 		repeater.WithLogger(logger{}),
-		repeater.WithLogMessage(fmt.Sprintf("run commnad \"%s\"", cmdArg)),
+		repeater.WithLogMessage(fmt.Sprintf("run commnad \"%s\"", strings.Join(args, " "))),
 	); err != nil {
-		log.Printf("unable to run command \"%s\" error: %v\n", cmdArg, err)
+		log.Printf("unable to run command \"%s\" error: %v\n", strings.Join(args, " "), err)
 		os.Exit(1)
 	}
 }
