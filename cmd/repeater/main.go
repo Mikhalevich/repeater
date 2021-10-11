@@ -35,9 +35,12 @@ func main() {
 
 	cmd := exec.Command(args[0], args[1:]...)
 
+	var out []byte
 	if err := repeater.Do(
 		func() error {
-			return cmd.Run()
+			var err error
+			out, err = cmd.Output()
+			return err
 		},
 		repeater.WithCount(*count),
 		repeater.WithTimeout(*duration),
@@ -47,4 +50,6 @@ func main() {
 		log.Printf("unable to run command \"%s\" error: %v\n", strings.Join(args, " "), err)
 		os.Exit(1)
 	}
+
+	log.Printf("repeater output: %s\n", string(out))
 }
