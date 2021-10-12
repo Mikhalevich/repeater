@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -16,7 +15,7 @@ type logger struct {
 }
 
 func (l logger) Infof(format string, args ...interface{}) {
-	log.Printf(format, args...)
+	fmt.Printf(format, args...)
 }
 
 func main() {
@@ -29,7 +28,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) <= 0 {
-		log.Println("command not specified")
+		fmt.Println("command not specified")
 		os.Exit(1)
 	}
 
@@ -47,9 +46,9 @@ func main() {
 		repeater.WithLogger(logger{}),
 		repeater.WithLogMessage(fmt.Sprintf("run commnad \"%s\"", strings.Join(args, " "))),
 	); err != nil {
-		log.Printf("unable to run command \"%s\" error: %v\n", strings.Join(args, " "), err)
+		fmt.Printf("unable to run command \"%s\" error: %v\n", strings.Join(args, " "), err)
 		os.Exit(1)
 	}
 
-	log.Printf("repeater output: %s\n", string(out))
+	fmt.Printf("repeater output: %s\n", string(out))
 }
