@@ -32,13 +32,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
-
 	var out []byte
 	if err := repeater.Do(
 		func() error {
 			var err error
-			out, err = cmd.Output()
+			out, err = exec.Command(args[0], args[1:]...).Output()
 			return err
 		},
 		repeater.WithCount(*count),
