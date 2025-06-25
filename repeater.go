@@ -1,49 +1,23 @@
 package repeater
 
 import (
+	"fmt"
 	"time"
 )
 
+const (
+	defaultFailureAttempts = 3
+)
+
+// Logger interface for external implementation for logger support.
 type Logger interface {
 	Infof(format string, args ...interface{})
 }
 
-type options struct {
-	count      int
-	timeout    time.Duration
-	l          Logger
-	logMessage string
-}
-
-type Option func(opts *options)
-
-func WithCount(c int) Option {
-	return func(opts *options) {
-		opts.count = c
-	}
-}
-
-func WithTimeout(d time.Duration) Option {
-	return func(opts *options) {
-		opts.timeout = d
-	}
-}
-
-func WithLogger(l Logger) Option {
-	return func(opts *options) {
-		opts.l = l
-	}
-}
-
-func WithLogMessage(m string) Option {
-	return func(opts *options) {
-		opts.logMessage = m
-	}
-}
-
-func Do(fn func() error, opts ...Option) error {
+// Do executes function while receiving error.
+func Do(doFn func() error, opts ...Option) error {
 	params := &options{
-		count: 3,
+		Attempts: defaultFailureAttempts,
 	}
 
 	for _, o := range opts {
@@ -51,24 +25,24 @@ func Do(fn func() error, opts ...Option) error {
 	}
 
 	var err error
-	for i := 0; i < params.count; i++ {
-		err = fn()
+	for attempt := range params.Attempts {
+		err = doFn()
 		if err == nil {
 			break
 		}
 
-		if params.l != nil {
-			if params.logMessage != "" {
-				params.l.Infof("message: %s, repeating attempt: %d, err: %v\n", params.logMessage, i+1, err)
-			} else {
-				params.l.Infof("repeating attempt: %d, err: %v\n", i+1, err)
-			}
+		if params.Logger != nil {
+			params.Logger.Infof("repeating attempt: %d, err: %v\n", attempt+1, err)
 		}
 
-		if params.timeout > 0 {
-			time.Sleep(params.timeout)
+		if params.Timeout > 0 {
+			time.Sleep(params.Timeout)
 		}
 	}
 
-	return err
+	if err != nil {
+		return fmt.Errorf("attempts exeded: %w", err)
+	}
+
+	return nil
 }
