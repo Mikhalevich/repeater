@@ -55,5 +55,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(string(out))
+	fmt.Fprintln(os.Stdout, string(out))
 }
