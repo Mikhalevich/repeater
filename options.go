@@ -2,12 +2,14 @@ package repeater
 
 import (
 	"time"
+
+	"github.com/Mikhalevich/repeater/logger"
 )
 
 type options struct {
 	Attempts int
 	Timeout  time.Duration
-	Logger   Logger
+	Logger   logger.Logger
 }
 
 // Option is a specific option for repeater.
@@ -28,8 +30,8 @@ func WithTimeout(d time.Duration) Option {
 }
 
 // WithLogger set custom logger (no logger by default).
-func WithLogger(logger Logger) Option {
+func WithLogger(log logger.Logger) Option {
 	return func(opts *options) {
-		opts.Logger = logger
+		opts.Logger = log
 	}
 }
