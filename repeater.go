@@ -3,25 +3,23 @@ package repeater
 import (
 	"fmt"
 	"time"
+
+	"github.com/Mikhalevich/repeater/logger"
 )
 
 const (
 	defaultFailureAttempts = 3
 )
 
-// Logger interface for external implementation for logger support.
-type Logger interface {
-	Infof(format string, args ...interface{})
-}
-
-// Do executes function while receiving error.
+// Do executes function while receiving error or attempts were exeded.
 func Do(doFn func() error, opts ...Option) error {
-	params := &options{
+	params := options{
 		Attempts: defaultFailureAttempts,
+		Logger:   logger.NewNoop(),
 	}
 
 	for _, o := range opts {
-		o(params)
+		o(&params)
 	}
 
 	var err error
@@ -31,9 +29,7 @@ func Do(doFn func() error, opts ...Option) error {
 			break
 		}
 
-		if params.Logger != nil {
-			params.Logger.Infof("repeating attempt: %d, err: %v\n", attempt+1, err)
-		}
+		params.Logger.WithError(err).Debug("failure attempt", "attempt", attempt+1)
 
 		if params.Timeout > 0 {
 			time.Sleep(params.Timeout)

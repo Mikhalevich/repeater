@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -11,27 +10,22 @@ import (
 	"time"
 
 	"github.com/Mikhalevich/repeater"
+	"github.com/Mikhalevich/repeater/logger"
 )
-
-type logger struct {
-}
-
-func (l logger) Infof(format string, args ...interface{}) {
-	log.Printf(format, args...)
-}
 
 func main() {
 	var (
 		//nolint:mnd
 		count    = flag.Int("c", 3, "repeat count attempts")
 		duration = flag.Duration("t", time.Second*1, "wait timeout between failed attempts")
+		log      = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	)
 
 	flag.Parse()
 
 	args := flag.Args()
 	if len(args) == 0 {
-		slog.Error("command not specified")
+		log.Error("command not specified")
 		os.Exit(1)
 	}
 
@@ -52,11 +46,11 @@ func main() {
 		},
 		repeater.WithAttempts(*count),
 		repeater.WithTimeout(*duration),
-		repeater.WithLogger(logger{}),
+		repeater.WithLogger(logger.NewSLog(log)),
 	); err != nil {
-		slog.Error("unable to run command", slog.String("cmd", strings.Join(args, " ")), slog.String("error", err.Error()))
+		log.Error("unable to run command", slog.String("cmd", strings.Join(args, " ")), slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
-	slog.Info(string(out))
+	log.Info(string(out))
 }
