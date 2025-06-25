@@ -8,9 +8,6 @@ func NewNoop() *Noop {
 	return &Noop{}
 }
 
-func (nw *Noop) Debug(msg string, args ...any) {
-}
-
 func (nw *Noop) Error(msg string, args ...any) {
 }
 

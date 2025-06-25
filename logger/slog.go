@@ -13,10 +13,6 @@ func NewSLog(log *slog.Logger) *SLog {
 	}
 }
 
-func (s *SLog) Debug(msg string, args ...any) {
-	s.log.Debug(msg, args...)
-}
-
 func (s *SLog) Error(msg string, args ...any) {
 	s.log.Error(msg, args...)
 }

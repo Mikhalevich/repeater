@@ -41,8 +41,11 @@ func main() {
 			var err error
 
 			out, err = exec.Command(cmd, cmdArgs...).Output()
+			if err != nil {
+				return fmt.Errorf("execute %s: %w", cmd, err)
+			}
 
-			return fmt.Errorf("execute %s: %w", cmd, err)
+			return nil
 		},
 		repeater.WithAttempts(*count),
 		repeater.WithTimeout(*duration),
@@ -52,5 +55,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Info(string(out))
+	fmt.Println(string(out))
 }

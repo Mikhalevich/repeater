@@ -29,7 +29,7 @@ func Do(doFn func() error, opts ...Option) error {
 			break
 		}
 
-		params.Logger.WithError(err).Debug("failure attempt", "attempt", attempt+1)
+		params.Logger.WithError(err).Error("failure attempt", "attempt", attempt+1)
 
 		if params.Timeout > 0 {
 			time.Sleep(params.Timeout)
