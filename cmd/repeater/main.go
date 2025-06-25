@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"strings"
@@ -15,38 +17,46 @@ type logger struct {
 }
 
 func (l logger) Infof(format string, args ...interface{}) {
-	fmt.Printf(format, args...)
+	log.Printf(format, args...)
 }
 
 func main() {
 	var (
-		count    = flag.Int("c", 3, "repeat count attempt")
-		duration = flag.Duration("d", time.Second*1, "wait timeout between failed attemps")
+		//nolint:mnd
+		count    = flag.Int("c", 3, "repeat count attempts")
+		duration = flag.Duration("t", time.Second*1, "wait timeout between failed attempts")
 	)
 
 	flag.Parse()
 
 	args := flag.Args()
-	if len(args) <= 0 {
-		fmt.Println("command not specified")
+	if len(args) == 0 {
+		slog.Error("command not specified")
 		os.Exit(1)
 	}
 
+	var (
+		cmd     = args[0]
+		cmdArgs = args[1:]
+	)
+
 	var out []byte
+
 	if err := repeater.Do(
 		func() error {
 			var err error
-			out, err = exec.Command(args[0], args[1:]...).Output()
-			return err
+
+			out, err = exec.Command(cmd, cmdArgs...).Output()
+
+			return fmt.Errorf("execute %s: %w", cmd, err)
 		},
-		repeater.WithCount(*count),
+		repeater.WithAttempts(*count),
 		repeater.WithTimeout(*duration),
 		repeater.WithLogger(logger{}),
-		repeater.WithLogMessage(fmt.Sprintf("run commnad \"%s\"", strings.Join(args, " "))),
 	); err != nil {
-		fmt.Printf("unable to run command \"%s\" error: %v\n", strings.Join(args, " "), err)
+		slog.Error("unable to run command", slog.String("cmd", strings.Join(args, " ")), slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
-	fmt.Printf("repeater output: %s\n", string(out))
+	slog.Info(string(out))
 }
