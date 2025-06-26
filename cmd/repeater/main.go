@@ -18,6 +18,8 @@ func main() {
 		//nolint:mnd
 		count    = flag.Int("c", 3, "repeat count attempts")
 		duration = flag.Duration("t", time.Second*1, "wait timeout between failed attempts")
+		factor   = flag.Int("f", 0, "factor for exponential timeout backoff")
+		jitter   = flag.Bool("j", false, "jitter for exponential timeout backoff")
 		log      = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	)
 
@@ -49,6 +51,8 @@ func main() {
 		},
 		repeater.WithAttempts(*count),
 		repeater.WithTimeout(*duration),
+		repeater.WithFactor(*factor),
+		repeater.WithJitter(*jitter),
 		repeater.WithLogger(logger.NewSLog(log)),
 	); err != nil {
 		log.Error("unable to run command", slog.String("cmd", strings.Join(args, " ")), slog.String("error", err.Error()))

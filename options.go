@@ -7,9 +7,11 @@ import (
 )
 
 type options struct {
-	Attempts int
-	Timeout  time.Duration
-	Logger   logger.Logger
+	Attempts        int
+	Timeout         time.Duration
+	Factor          int
+	IsJitterEnabled bool
+	Logger          logger.Logger
 }
 
 // Option is a specific option for repeater.
@@ -26,6 +28,20 @@ func WithAttempts(count int) Option {
 func WithTimeout(d time.Duration) Option {
 	return func(opts *options) {
 		opts.Timeout = d
+	}
+}
+
+// WithFactor set factor for exponential backoff timeout calculation(0 by default).
+func WithFactor(factor int) Option {
+	return func(opts *options) {
+		opts.Factor = factor
+	}
+}
+
+// WithJitter enable/disable jitter for exponential backoff timeout calculation(false by default).
+func WithJitter(enabled bool) Option {
+	return func(opts *options) {
+		opts.IsJitterEnabled = enabled
 	}
 }
 
