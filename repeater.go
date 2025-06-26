@@ -2,6 +2,8 @@ package repeater
 
 import (
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"time"
 
 	"github.com/Mikhalevich/repeater/logger"
@@ -23,16 +25,19 @@ func Do(doFn func() error, opts ...Option) error {
 	}
 
 	var err error
+
 	for attempt := range params.Attempts {
 		err = doFn()
 		if err == nil {
 			break
 		}
 
-		params.Logger.WithError(err).Error("failure attempt", "attempt", attempt+1)
+		timeout := calculateTimeout(attempt, params.Timeout, params.Factor, params.IsJitterEnabled)
 
-		if params.Timeout > 0 {
-			time.Sleep(params.Timeout)
+		params.Logger.WithError(err).Error("failure attempt", "attempt", attempt+1, "timeout", timeout)
+
+		if timeout > 0 {
+			time.Sleep(timeout)
 		}
 	}
 
@@ -41,4 +46,41 @@ func Do(doFn func() error, opts ...Option) error {
 	}
 
 	return nil
+}
+
+func calculateTimeout(
+	attempt int,
+	timeout time.Duration,
+	factor int,
+	withJitter bool,
+) time.Duration {
+	timeoutSecs := calculateTimeoutSeconds(attempt, int(timeout.Seconds()), factor, withJitter)
+
+	return time.Second * time.Duration(timeoutSecs)
+}
+
+func calculateTimeoutSeconds(
+	attempt int,
+	timeout int,
+	factor int,
+	withJitter bool,
+) int {
+	if timeout == 0 {
+		return 0
+	}
+
+	if factor == 0 {
+		return timeout
+	}
+
+	attemptFactor := int(math.Pow(float64(factor), float64(attempt)))
+
+	timeout *= attemptFactor
+
+	if withJitter {
+		//nolint:gosec
+		timeout += int(float32(timeout) * rand.Float32())
+	}
+
+	return timeout
 }
