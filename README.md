@@ -74,6 +74,6 @@ func main() {
 
 ## License
 
-Repeaetr is released under the
+Repeater is released under the
 [MIT License](http://www.opensource.org/licenses/MIT).
 
